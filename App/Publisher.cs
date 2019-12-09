@@ -11,13 +11,13 @@ namespace BigBubble.App
         private readonly IModel _publishChannel;
         private readonly string _queueName;
         private readonly IBasicProperties _basicProperties;
-         
+
 
         public bool Joined { get; private set; }
 
         public Publisher(IRmqConnectionFactory connectionFactory, IUsernameProvider username)
         {
-             
+
 
             _publishChannel = connectionFactory.GetPublishChannel();
             _queueName = _publishChannel.QueueDeclare().QueueName;
@@ -41,5 +41,7 @@ namespace BigBubble.App
                                  body: body);
 
         }
+
+
     }
 }

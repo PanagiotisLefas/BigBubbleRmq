@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using BigBubble.App;
@@ -20,12 +21,12 @@ namespace BigBubble
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _bigBubbleClient.InitChat();
+            _bigBubbleClient.InitChat(stoppingToken);
 
-            while (!stoppingToken.IsCancellationRequested)
-            {
+            this.Dispose();
 
-            }
+            throw new TaskCanceledException();
+
         }
     }
 }

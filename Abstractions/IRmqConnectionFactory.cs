@@ -1,8 +1,9 @@
-﻿using RabbitMQ.Client;
+﻿using System;
+using RabbitMQ.Client;
 
 namespace BigBubble.Abstractions
 {
-    public interface IRmqConnectionFactory
+    public interface IRmqConnectionFactory : IDisposable
     {
         IModel GetConsumeChannel();
         IModel GetPublishChannel();

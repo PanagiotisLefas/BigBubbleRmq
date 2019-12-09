@@ -18,7 +18,15 @@ namespace BigBubble
             Console.SetWindowSize(163, 80);
 
 
-            CreateHostBuilder(args).Build().Run();
+            try
+            {
+                CreateHostBuilder(args).Build().Run();
+            }
+            catch (Exception)
+            {
+
+                
+            }
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -26,10 +34,12 @@ namespace BigBubble
                 .ConfigureServices((hostContext, services) =>
                 {
                     var config = hostContext.Configuration;
-                    RmqConfig configRm = new RmqConfig();
-                    config.GetSection("Rmq").Bind(config);
+                    //RmqConfig configRm = new RmqConfig();
+                    //config.GetSection("Rmq").Bind(config);
 
-                    services.AddSingleton<IRmqConnectionFactory>(new RmqConnectionFactory(configRm.Host));
+                    var connection = config.GetSection("Rmq").GetValue<string>("Host");
+
+                    services.AddSingleton<IRmqConnectionFactory>(new RmqConnectionFactory(connection));
                     services.AddSingleton<IUsernameProvider, UsernameProvider>();
                     services.AddSingleton<Publisher>();
                     services.AddSingleton<Consumer>();

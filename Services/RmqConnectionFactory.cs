@@ -12,7 +12,7 @@ namespace BigBubble.Services
 
         public RmqConnectionFactory(string hostName)
         {
-            var factory = new ConnectionFactory() { HostName = "localhost" };
+            var factory = new ConnectionFactory() { HostName = hostName };
             _connection = factory.CreateConnection();
             _consumerChannel = _connection.CreateModel();
             _publishChannel = _connection.CreateModel();

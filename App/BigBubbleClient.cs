@@ -1,17 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using BigBubble.Abstractions;
 using BigBubble.Models;
 using Microsoft.Extensions.Configuration;
 
 namespace BigBubble.App
 {
-    public class BigBubbleClient
+    public class BigBubbleClient : IDisposable
     {
         private readonly Publisher _publisher;
         private readonly Consumer _consumer;
         private readonly IUsernameProvider _usernameProvider;
+        private readonly IRmqConnectionFactory _connectionFactory;
 
 
         StringBuilder currentLine = new StringBuilder();
@@ -20,13 +23,13 @@ namespace BigBubble.App
 
         private Dictionary<string, ConsoleColor> Colors = new Dictionary<string, ConsoleColor>()
         {
-            { KnownTypes.join.ToString(), ConsoleColor.Green },
+            { KnownTypes.join.ToString(), ConsoleColor.Cyan },
             { KnownTypes.leave.ToString(), ConsoleColor.Red },
             { KnownTypes.publish.ToString(), ConsoleColor.Green },
         };
 
 
-        public BigBubbleClient(Publisher publisher, Consumer consumer, IUsernameProvider usernameProvider, IConfiguration config)
+        public BigBubbleClient(Publisher publisher, Consumer consumer, IUsernameProvider usernameProvider, IConfiguration config, IRmqConnectionFactory connectionFactory)
         {
             _publisher = publisher;
             _consumer = consumer;
@@ -34,7 +37,7 @@ namespace BigBubble.App
             _consumer.MessageReceived += Consumer_MessageReceived;
 
             _usernameProvider = usernameProvider;
-
+            _connectionFactory = connectionFactory;
         }
 
         private void Consumer_MessageReceived(object sender, MessageReceivedModel message)
@@ -91,7 +94,7 @@ namespace BigBubble.App
             Console.Write(currentLine);
         }
 
-        public void InitChat()
+        public void InitChat(CancellationToken stoppingToken)
         {
             PrintImage();
             Console.WriteLine("Please enter your username:");
@@ -102,7 +105,7 @@ namespace BigBubble.App
             _consumer.InitConsume();
             JoinChat();
 
-            while (!_shouldExit)
+            while (!_shouldExit || stoppingToken.IsCancellationRequested)
             {
                 currentLine = new StringBuilder();
                 var currentKey = default(System.ConsoleKeyInfo);
@@ -119,10 +122,8 @@ namespace BigBubble.App
             }
 
             Console.WriteLine("Service Stoped");
-
+            Dispose();
         }
-
-
 
         private void CheckMessage(string message)
         {
@@ -203,7 +204,7 @@ namespace BigBubble.App
  | |_) | |__| | |_) | |_) | |____| |____                  
  |____/_\____/|____/|____/|______|______|__ ______ ______ "); Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine(@" |______|______|______|______|______|______|______|______|
- |______|______|______|______|______|______|______|______|");Console.ForegroundColor = ConsoleColor.Yellow;
+ |______|______|______|______|______|______|______|______|"); Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine(@" |  ____|  __ \_   _/ ____|      |  __ \|  \/  |/ __ \    
  | |__  | |__) || || |           | |__) | \  / | |  | |   
  |  __| |  ___/ | || |           |  _  /| |\/| | |  | |   
@@ -224,6 +225,11 @@ namespace BigBubble.App
 
 ");
             Console.ResetColor();
+        }
+
+        public void Dispose()
+        {
+            _connectionFactory.Dispose();
         }
     }
 }
